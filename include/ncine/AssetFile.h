@@ -52,7 +52,7 @@ class DLL_PUBLIC AssetFile : public IFile
   private:
 	static AAssetManager *assetManager_;
 	AAsset *asset_;
-	long int startOffset_;
+	unsigned long int startOffset_;
 
 	/// Opens the file with `AAsset_openFileDescriptor()`
 	void openFD(unsigned char mode);

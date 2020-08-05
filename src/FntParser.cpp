@@ -22,7 +22,7 @@ FntParser::FntParser(const char *fntFilename)
 	parseFntBuffer(fileBuffer.get(), size);
 }
 
-FntParser::FntParser(const char *buffer, long int size)
+FntParser::FntParser(const char *buffer, unsigned long int size)
     : numPageTags_(0), numCharTags_(0), numKerningTags_(0)
 {
 	parseFntBuffer(buffer, size);
@@ -32,7 +32,7 @@ FntParser::FntParser(const char *buffer, long int size)
 // PUBLIC FUNCTIONS
 ///////////////////////////////////////////////////////////
 
-void FntParser::parseFntBuffer(const char *buffer, long int size)
+void FntParser::parseFntBuffer(const char *buffer, unsigned long int size)
 {
 	char const *const bufferStart = buffer;
 
