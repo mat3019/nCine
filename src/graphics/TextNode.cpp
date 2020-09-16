@@ -122,17 +122,20 @@ void TextNode::draw(RenderQueue &renderQueue)
 		xAdvance_ = calculateAlignment(currentLine) - width_ * 0.5f;
 		yAdvance_ = 0.0f - height_ * 0.5f;
 		const unsigned int length = string_.length();
-		for (unsigned int i = 0; i < length; i++)
+		for (unsigned int i = 0; i < length;) // increments handled by UTF-8 decoding
 		{
 			if (string_[i] == '\n')
 			{
 				currentLine++;
 				xAdvance_ = calculateAlignment(currentLine) - width_ * 0.5f;
 				yAdvance_ += font_->base();
+				i++; // manual increment as newline character is not decoded
 			}
 			else
 			{
-				const FontGlyph *glyph = font_->glyph(static_cast<unsigned int>(string_[i]));
+				unsigned int codepoint = nctl::String::InvalidUnicode;
+				i += string_.utf8ToCodePoint(i, codepoint);
+				const FontGlyph *glyph = (codepoint != nctl::String::InvalidUnicode) ? font_->glyph(codepoint) : nullptr;
 				if (glyph)
 				{
 					Degenerate degen = Degenerate::NONE;
@@ -182,7 +185,8 @@ void TextNode::calculateBoundaries() const
 		float xAdvanceMax = 0.0f; // longest line
 		xAdvance_ = 0.0f;
 		yAdvance_ = 0.0f;
-		for (unsigned int i = 0; i < string_.length(); i++)
+		const unsigned int length = string_.length();
+		for (unsigned int i = 0; i < length;) // increments handled by UTF-8 decoding
 		{
 			if (string_[i] == '\n')
 			{
@@ -191,18 +195,25 @@ void TextNode::calculateBoundaries() const
 					xAdvanceMax = xAdvance_;
 				xAdvance_ = 0.0f;
 				yAdvance_ += font_->base();
+				i++; // manual increment as newline character is not decoded
 			}
 			else
 			{
-				const FontGlyph *glyph = font_->glyph(static_cast<unsigned int>(string_[i]));
+				unsigned int codepoint = nctl::String::InvalidUnicode;
+				i += string_.utf8ToCodePoint(i, codepoint);
+				const FontGlyph *glyph = (codepoint != nctl::String::InvalidUnicode) ? font_->glyph(codepoint) : nullptr;
 				if (glyph)
 				{
 					xAdvance_ += glyph->xAdvance();
 					if (withKerning_)
 					{
 						// font kerning
-						if (i < string_.length() - 1)
-							xAdvance_ += glyph->kerning(static_cast<unsigned int>(string_[i + 1]));
+						if (i < length - 1)
+						{
+							unsigned int nextCodepoint = nctl::String::InvalidUnicode;
+							string_.utf8ToCodePoint(i, nextCodepoint);
+							xAdvance_ += glyph->kerning(nextCodepoint);
+						}
 					}
 				}
 			}
